@@ -1,0 +1,40 @@
+version: '3'
+services:
+
+  image-uploader-front:
+    build: ./docker/front
+    container_name: image-uploader-front
+    tty: true
+    volumes:
+    - ./front/:/app
+    ports:
+      - "8080:8080"
+    command: >
+      ash -c "yarn install &&
+        yarn serve"
+
+  image-uploader-back:
+    build: ./docker/back
+    container_name: image-uploader-back
+    ports:
+      - "8000:8000"
+    tty: true
+    volumes:
+    - ./back/src/github.com/yutaiii/image-uploader:/go/src/github.com/yutaiii/image-uploader
+    working_dir: /go/src/github.com/yutaiii/image-uploader/
+    command: realize start --run
+    # links:
+    #   - image-uploader-db
+
+  image-uploader-db:
+    image: mysql:5.7
+    container_name: image-uploader-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: image-uploader
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - ./db/data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
